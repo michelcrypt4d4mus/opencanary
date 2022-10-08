@@ -15,7 +15,7 @@ from six import iteritems
 
 SAMPLE_SETTINGS = resource_filename(__name__, 'data/settings.json')
 SETTINGS = 'opencanary.conf'
-OPENCANARY_CONF_DIR_ENV_VAR = 'OPENCANARY_CONF_PATH'
+OPENCANARY_CONF_DIR_ENV_VAR = 'OPENCANARY_CONF_DIR'
 DEFAULT_OPENCANARY_CONFDIR = '/etc/opencanaryd'
 
 

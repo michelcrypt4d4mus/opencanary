@@ -110,10 +110,10 @@ Which will create a folder, `/etc/opencanary` and a config file inside that fold
 
 When OpenCanary starts it looks for config files in the following order:
 
-1. The path specified by `
-1. ./opencanary.conf (i.e. the directory where OpenCanary is installed)
-2. ~/.opencanary.conf (i.e. the home directory of the user, usually this will be root so /root/.opencanary.conf)
-3. /etc/opencanary/opencanary.conf
+1. `$OPENCANARY_CONF_PATH/opencanary.conf` (if the `$OPENCANARY_CONF_DIR` environment variable is set)
+1. `./opencanary.conf` (i.e. the directory where OpenCanary is installed)
+2. `~/.opencanary.conf` (i.e. the home directory of the user, usually this will be root so `/root/.opencanary.conf`)
+3. `/etc/opencanary/opencanary.conf`
 
 It will use the first config file that exists.
 
