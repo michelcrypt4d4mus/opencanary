@@ -110,6 +110,7 @@ Which will create a folder, `/etc/opencanary` and a config file inside that fold
 
 When OpenCanary starts it looks for config files in the following order:
 
+1. The path specified by `
 1. ./opencanary.conf (i.e. the directory where OpenCanary is installed)
 2. ~/.opencanary.conf (i.e. the home directory of the user, usually this will be root so /root/.opencanary.conf)
 3. /etc/opencanary/opencanary.conf
@@ -158,7 +159,7 @@ Docker
 1. Edit the `data/.opencanary.conf` file to enable, disable or customize the services that will run.
 
 1. Build a Docker image to run.
-    
+
     To build the latest Docker image (based on the code on a given branch) run:
 
     ```bash

@@ -7,7 +7,7 @@ import string
 import subprocess
 import sys
 from os import environ
-from os.path import expanduser, isfile
+from os.path import expanduser, isdir, join
 from termios import VLNEXT
 
 from pkg_resources import resource_filename
@@ -15,7 +15,8 @@ from six import iteritems
 
 SAMPLE_SETTINGS = resource_filename(__name__, 'data/settings.json')
 SETTINGS = 'opencanary.conf'
-OPENCANARY_CONF_PATH_ENV_VAR = 'OPENCANARY_CONF_PATH'
+OPENCANARY_CONF_DIR_ENV_VAR = 'OPENCANARY_CONF_PATH'
+DEFAULT_OPENCANARY_CONFDIR = '/etc/opencanaryd'
 
 
 def expand_vars(var):
@@ -36,15 +37,15 @@ class Config:
         self.__config = None
         self.__configfile = configfile
 
-        if environ.get(OPENCANARY_CONF_PATH_ENV_VAR):
-            opencanary_conf_path = environ[OPENCANARY_CONF_PATH_ENV_VAR]
+        if environ.get(OPENCANARY_CONF_DIR_ENV_VAR):
+            opencanary_conf_path = environ[OPENCANARY_CONF_DIR_ENV_VAR]
 
-            if not isfile(opencanary_conf_path):
-                raise ValueError(f"Configured {OPENCANARY_CONF_PATH_ENV_VAR}={opencanary_conf_path} is not a file")
+            if not isdir(opencanary_conf_path):
+                raise ConfigException(OPENCANARY_CONF_DIR_ENV_VAR, "{opencanary_conf_path} is not a dir")
 
-            files = [opencanary_conf_path]
+            files = [join(opencanary_conf_path, configfile)]
         else:
-            files = [configfile, "%s/.%s" % (expanduser("~"), configfile), "/etc/opencanaryd/%s"%configfile]
+            files = [configfile, "%s/.%s" % (expanduser("~"), configfile), join(DEFAULT_OPENCANARY_CONFDIR, configfile)]
 
         print("** We hope you enjoy using OpenCanary. For more open source Canary goodness, head over to canarytokens.org. **")
         for fname in files:
