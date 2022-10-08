@@ -12,8 +12,7 @@ import sys
 from argparse import ArgumentDefaultsHelpFormatter, ArgumentParser
 from functools import partial
 from os import chmod, pardir, path
-from os.path import dirname, join, realpath
-from shutil import copyfile
+from os.path import basename, dirname, expanduser, join, realpath
 from subprocess import CalledProcessError, check_output
 
 from pkg_resources import resource_filename
@@ -40,6 +39,29 @@ DAEMON_RUNTIME_OPTIONS = "--dev"
 # This script writes to the launchctl/ folder
 LAUNCHCTL_DIR = join(OPENCANARY_DIR, 'launchctl')
 
+# For Debian
+INIT_D_CONTENTS = """
+#! /bin/sh
+# For running as a daemon process on Debian
+
+case "$1" in
+    start)
+        echo "Starting {service_name}"
+        {launcher_script}
+        ;;
+    stop)
+        echo "Stopping {service_name}"
+        killall {launcher_script_basename}
+        ;;
+    *)
+        echo "Usage: /etc/init.d/{service_name} {start|stop}"
+        exit 1
+        ;;
+esac
+
+exit 0
+"""
+
 # Homebrew (TODO: is this necessary?)
 try:
     homebrew_bin_dir = join(check_output(['brew', '--prefix']).decode().rstrip(), 'bin')
@@ -53,7 +75,7 @@ with open(DEFAULT_CONFIG_FILE, 'r') as file:
     canaries = [k.split(".")[0] for k in config.keys() if re.match("[a-z]+\\.enabled", k)]
 
 
-# Parse arguments.
+# Set up argparse
 parser = ArgumentParser(
     description='Generate .plist, opencanary.conf, and scripts to bootstrap opencanary as a launchctl daemon.',
     formatter_class=ArgumentDefaultsHelpFormatter
@@ -76,11 +98,12 @@ parser.add_argument('--canary', action='append',
                     dest='canaries')
 
 
+# Parse arguments.
 args = parser.parse_args()
 args.canaries = args.canaries or []
 plist_basename = args.service_name + ".plist"
 
-# Setup dirs
+# Create dirs
 for dir in [LAUNCHCTL_DIR, args.log_output_dir]:
     print(f"Creating '{dir}'...")
     pathlib.Path(dir).mkdir(parents=True, exist_ok=True)
@@ -88,7 +111,7 @@ for dir in [LAUNCHCTL_DIR, args.log_output_dir]:
 # File builders
 build_launchctl_dir_path = partial(join, LAUNCHCTL_DIR)
 build_logfile_name = lambda log_name: join(args.log_output_dir, f"opencanary.{log_name}.log")
-
+home_dir_env_var = lambda _path: _path.replace(expanduser('~'), '$HOME')
 
 # daemon launcher script
 launcher_script = build_launchctl_dir_path(f"launch_{args.service_name}.sh")
@@ -168,6 +191,20 @@ with open(uninstall_service_script, 'w') as file:
     file.write(f"launchctl bootout system/{args.service_name}\n")
 
 
+# init.d script
+init_d_output_path = build_launchctl_dir_path('init.d')
+
+init_d_contents = INIT_D_CONTENTS.format(
+    launcher_script=launcher_script,
+    launcher_script_basename=basename(launcher_script),
+    service_name=args.service_name
+)
+
+with open(init_d_output_path, 'w') as file:
+    file.write(init_d_contents)
+
+
+
 # Set permissions
 chmod(launcher_script, stat.S_IRWXU)  # stat.S_IEXEC | stat.S_IREAD
 chmod(uninstall_service_script, stat.S_IRWXU)
@@ -180,6 +217,7 @@ print(f"    Service definition: ./{path.relpath(plist_output_file)}")
 print(f"       Launcher script: ./{path.relpath(launcher_script)}")
 print(f"      Bootstrap script: ./{path.relpath(install_service_script)}")
 print(f"        Bootout script: ./{path.relpath(uninstall_service_script)}\n")
+print(f"        init.d scripts: ./{path.relpath(init_d_output_path)}\n")
 print(f"                Config: ./{path.relpath(config_output_file)}")
 print(f"      Enabled canaries: {', '.join(args.canaries)}\n")
 print(f"To install as a system service run:\n    'sudo {install_service_script}'\n")
