@@ -1,10 +1,21 @@
-from six import iteritems
-import os, sys, json, copy, socket, itertools, string, subprocess
-from os.path import expanduser
+import copy
+import itertools
+import json
+import os
+import socket
+import string
+import subprocess
+import sys
+from os import environ
+from os.path import expanduser, isfile
+from termios import VLNEXT
+
 from pkg_resources import resource_filename
+from six import iteritems
 
 SAMPLE_SETTINGS = resource_filename(__name__, 'data/settings.json')
 SETTINGS = 'opencanary.conf'
+OPENCANARY_CONF_PATH_ENV_VAR = 'OPENCANARY_CONF_PATH'
 
 
 def expand_vars(var):
@@ -25,7 +36,16 @@ class Config:
         self.__config = None
         self.__configfile = configfile
 
-        files = [configfile, "%s/.%s" % (expanduser("~"), configfile), "/etc/opencanaryd/%s"%configfile]
+        if environ.get(OPENCANARY_CONF_PATH_ENV_VAR):
+            opencanary_conf_path = environ[OPENCANARY_CONF_PATH_ENV_VAR]
+
+            if not isfile(opencanary_conf_path):
+                raise ValueError(f"Configured {OPENCANARY_CONF_PATH_ENV_VAR}={opencanary_conf_path} is not a file")
+
+            files = [opencanary_conf_path]
+        else:
+            files = [configfile, "%s/.%s" % (expanduser("~"), configfile), "/etc/opencanaryd/%s"%configfile]
+
         print("** We hope you enjoy using OpenCanary. For more open source Canary goodness, head over to canarytokens.org. **")
         for fname in files:
             try:
