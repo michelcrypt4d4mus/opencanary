@@ -100,7 +100,7 @@ with importlib.resources.as_file(opencanary_config_file) as config_file:
 #### Parse arguments ####
 #########################
 parser = ArgumentParser(
-    description='Generate .plist, opencanary.conf, and scripts to bootstrap opencanary as a launchctl daemon.',
+    description="Generate .plist, opencanary.conf, and scripts to bootstrap opencanary as a launchctl daemon.",
     formatter_class=ArgumentDefaultsHelpFormatter
 )
 
@@ -143,7 +143,7 @@ build_logfile_name = lambda log_name: join(  # noqa: E731
     args.log_output_dir, f"opencanary.{log_name}.log"
 )
 
-home_dir_env_var = lambda _path: _path.replace(expanduser('~'), '$HOME')
+home_dir_env_var = lambda _path: _path.replace(expanduser("~"), "$HOME")
 
 # daemon launcher script
 launcher_script = build_launchctl_dir_path(f"launch_{args.service_name}.sh")
