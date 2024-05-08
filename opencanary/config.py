@@ -61,7 +61,7 @@ class Config:
     def __init__(self, configfile=SETTINGS):
         self.__config = None
         self.__configfile = configfile
-        config_files = []
+        config_file_paths = []
 
         # If there is OPENCANARY_CONF_DIR env var configured use that first
         if environ.get(OPENCANARY_CONF_DIR_ENV_VAR):
@@ -70,10 +70,10 @@ class Config:
             if not isdir(opencanary_conf_path):
                 raise ConfigException(OPENCANARY_CONF_DIR_ENV_VAR, "{opencanary_conf_path} is not a dir")
 
-            config_files.append(join(opencanary_conf_path, configfile))
+            config_file_paths.append(join(opencanary_conf_path, configfile))
 
         # Default locations that are checked for .opencanary.conf
-        config_files.extend([
+        config_file_paths.extend([
             configfile,                                      # constructor argument
             join(expanduser("~"), f".{configfile}"),         # Default to home dir .opencanary.conf
             join(DEFAULT_OPENCANARY_CONFDIR, configfile)     # Fall back to default location /etc/opencanaryd/opencanary.conf
@@ -83,7 +83,7 @@ class Config:
             "** We hope you enjoy using OpenCanary. For more open source Canary goodness, head over to canarytokens.org. **"
         )
 
-        for fname in config_files:
+        for fname in config_file_paths:
             try:
                 with open(fname, "r") as f:
                     print("[-] Using config file: %s" % fname)
