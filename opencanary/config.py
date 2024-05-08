@@ -1,17 +1,26 @@
-import os
-import sys
-import json
+import copy
 import itertools
+import json
+import os
+import re
+import shutil
+import socket
 import string
 import subprocess
-import shutil
-import re
-from os.path import expanduser
-from pkg_resources import resource_filename
+import sys
+from os import environ
+from os.path import expanduser, isdir, join
 from pathlib import Path
+from termios import VLNEXT
 
-SAMPLE_SETTINGS = resource_filename(__name__, "data/settings.json")
-SETTINGS = "opencanary.conf"
+from pkg_resources import resource_filename
+from six import iteritems
+
+SAMPLE_SETTINGS = resource_filename(__name__, 'data/settings.json')
+SETTINGS = 'opencanary.conf'
+OPENCANARY_CONF_DIR_ENV_VAR = 'OPENCANARY_CONF_DIR'
+DEFAULT_OPENCANARY_CONFDIR = '/etc/opencanaryd'
+
 
 
 def expand_vars(var):
@@ -52,16 +61,29 @@ class Config:
     def __init__(self, configfile=SETTINGS):
         self.__config = None
         self.__configfile = configfile
+        config_file_paths = []
 
-        files = [
-            configfile,
-            "%s/.%s" % (expanduser("~"), configfile),
-            "/etc/opencanaryd/%s" % configfile,
-        ]
+        # If there is OPENCANARY_CONF_DIR env var configured use that first
+        if environ.get(OPENCANARY_CONF_DIR_ENV_VAR):
+            opencanary_conf_path = environ[OPENCANARY_CONF_DIR_ENV_VAR]
+
+            if not isdir(opencanary_conf_path):
+                raise ConfigException(OPENCANARY_CONF_DIR_ENV_VAR, "{opencanary_conf_path} is not a dir")
+
+            config_file_paths.append(join(opencanary_conf_path, configfile))
+
+        # Default locations that are checked for .opencanary.conf
+        config_file_paths.extend([
+            configfile,                                      # constructor argument
+            join(expanduser("~"), f".{configfile}"),         # Default to home dir .opencanary.conf
+            join(DEFAULT_OPENCANARY_CONFDIR, configfile)     # Fall back to default location /etc/opencanaryd/opencanary.conf
+        ])
+
         print(
             "** We hope you enjoy using OpenCanary. For more open source Canary goodness, head over to canarytokens.org. **"
         )
-        for fname in files:
+
+        for fname in config_file_paths:
             try:
                 with open(fname, "r") as f:
                     print("[-] Using config file: %s" % fname)
