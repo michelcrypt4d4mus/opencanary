@@ -147,16 +147,16 @@ When OpenCanary starts it looks for configuration files in the following locatio
 3. `/etc/opencanary/opencanary.conf`
 
 ### Creating the initial configuration
-
 To create an initial configuration, run as `root` (you may be prompted for a `sudo` password):
-```
+
+```sh
 $ opencanaryd --copyconfig
 [*] A sample config file is ready /etc/opencanaryd/opencanary.conf
 
 [*] Edit your configuration, then launch with "opencanaryd --start"
 ```
 
-This copies the default configuration to `/etc/opencanaryd/opencanary.conf`. You must now edit the config file to determine which services and logging options you want to enable.
+This copies [the default OpenCanary configuration](opencanary/data/settings.json) to a new file at `/etc/opencanaryd/opencanary.conf` which you can edit this to determine which services and logging options you want to enable.
 
 ### Enabling protocol modules and alerting
 
