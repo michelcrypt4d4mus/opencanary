@@ -42,7 +42,7 @@ DAEMON_RUNTIME_OPTIONS = "--dev"
 # This script writes to the launchctl/ folder
 LAUNCHCTL_DIR = join(OPENCANARY_DIR, "launchctl")
 
-# For Debian
+# For Debian init.d daemon launch   TODO: i don't think this works
 INIT_D_CONTENTS = """
 #! /bin/sh
 # For running as a daemon process on Debian
@@ -72,40 +72,8 @@ except CalledProcessError as e:
     print(f"Couldn't get homebrew install location: {e}")
     sys.exit()
 
-# Set up argparse
-parser = ArgumentParser(
-    description='Generate .plist, opencanary.conf, and scripts to bootstrap opencanary as a launchctl daemon.',
-    formatter_class=ArgumentDefaultsHelpFormatter
-)
 
-
-parser.add_argument(
-    "--service-name",
-    help="string you would like launchctl to use as the name of the opencanary service",
-    metavar="NAME",
-    default=DEFAULT_SERVICE_NAME,
-)
-
-parser.add_argument(
-    "--log-output-dir",
-    help="opencanary will write its logs to files in DIR when the service is running",
-    metavar="DIR",
-    default=DEFAULT_LOG_DIR,
-)
-
-parser.add_argument(
-    "--canary",
-    action="append",
-    help="enable canary service in the generated opencanary.conf file "
-    + "(can be supplied more than once)",
-    choices=canaries,
-    dest="canaries",
-)
-
-
-
-# Parse arguments.
-=======
+# Find config files
 if USER_CONFIG_FILE.exists():
     opencanary_config_file = USER_CONFIG_FILE
 else:
@@ -128,10 +96,12 @@ with importlib.resources.as_file(opencanary_config_file) as config_file:
         ]
 
 
-# Parse arguments.
+#########################
+#### Parse arguments ####
+#########################
 parser = ArgumentParser(
-    description="Generate .plist, opencanary.conf, and scripts to bootstrap opencanary as a launchctl daemon.",
-    formatter_class=ArgumentDefaultsHelpFormatter,
+    description='Generate .plist, opencanary.conf, and scripts to bootstrap opencanary as a launchctl daemon.',
+    formatter_class=ArgumentDefaultsHelpFormatter
 )
 
 parser.add_argument(
@@ -158,7 +128,6 @@ parser.add_argument(
 )
 
 
->>>>>>> master
 args = parser.parse_args()
 args.canaries = args.canaries or []
 plist_basename = args.service_name + ".plist"
