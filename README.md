@@ -178,6 +178,8 @@ Please note that for the Portscan service, we have added a `portscan.ignore_loca
 
 The Windows File Share module (`smb`) requires a Samba installation. See a step-by-step guide on [the Wiki](https://github.com/thinkst/opencanary/wiki/Opencanary-and-Samba).
 
+
+
 ## Running OpenCanary
 
 OpenCanary is either run directly on a Linux or macOS host, or via a Docker container.
@@ -203,36 +205,16 @@ $ sudo -E pkgx opencanaryd --start
 
 The route requires [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/install/) to be installed.
 
-<<<<<<< HEAD
-1. `$OPENCANARY_CONF_PATH/opencanary.conf` (if the `$OPENCANARY_CONF_DIR` environment variable is set)
-1. `./opencanary.conf` (i.e. the directory where OpenCanary is installed)
-2. `~/.opencanary.conf` (i.e. the home directory of the user, usually this will be root so `/root/.opencanary.conf`)
-3. `/etc/opencanary/opencanary.conf`
-
-It will use the first config file that exists.
-
-Samba Setup (optional)
-----------------------
-This is required for the `smb` module.
-
-Head over to our step by step wiki over [here](https://github.com/thinkst/opencanary/wiki/Opencanary-and-Samba)
-
-FAQ
----
-We have a FAQ over [here](https://github.com/thinkst/opencanary/wiki)
-
-Docker Compose
-----------------
-
-> Requires [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/install/) installed.
-=======
 > **Note**
 > The portscan module is automatically disabled for Dockerised OpenCanary.
->>>>>>> master
+
+## FAQ
+We have a FAQ over [here](https://github.com/thinkst/opencanary/wiki)
+
 
 1. Edit the `data/.opencanary.conf` file to enable, disable or customize the services that will run.
 1. Edit the `ports` section of the `docker-compose.yml` file to enable/disable the desired ports based on the services you have enabled in the config file.
-1. Run the container.
+1. Run the container:
     ```bash
     docker-compose up latest
     ```
