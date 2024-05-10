@@ -1,2 +1,2 @@
 build_scripts/build_opencanary.sh
-twistd -noy bin/opencanary.tac
+DEFAULT_SERVICE_LOG_DIR=/var/tmp/opencanary twistd -noy bin/opencanary.tac

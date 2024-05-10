@@ -131,7 +131,7 @@ class PyLogger(LoggerBase):
     __metaclass__ = Singleton
 
     DEFAULT_SERVICE_LOG_DIR_VAR = 'DEFAULT_SERVICE_LOG_DIR'
-    DEFAULT_SERVICE_LOG_DIR = '/var/tmp/opencanary'
+    DEFAULT_SERVICE_LOG_DIR = '/var/log/opencanary'
 
     def __init__(self, config, handlers, formatters={}, per_service_logs={}):
         self.node_id = config.getVal("device.node_id")
@@ -149,12 +149,13 @@ class PyLogger(LoggerBase):
             "loggers": {self.node_id: {"handlers": set(handlers.keys())}},
         }
 
-        default_service_log_dir = (
-            os.environ.get(self.DEFAULT_SERVICE_LOG_DIR_VAR) or self.DEFAULT_SERVICE_LOG_DIR)
+        default_service_log_dir = os.getenv(self.DEFAULT_SERVICE_LOG_DIR_VAR, self.DEFAULT_SERVICE_LOG_DIR)
         os.makedirs(default_service_log_dir, exist_ok=True)
-        enabled_services = [k.removesuffix(".enabled") 
-                            for k in config.toDict()
-                            if k.endswith(".enabled") and config.getVal(k)]    
+        enabled_services = [
+            k.removesuffix(".enabled") 
+            for k in config.toDict()
+            if k.endswith(".enabled") and config.getVal(k)
+        ] 
         for service in enabled_services:
             log_filename = per_service_logs.get(service)
             if not log_filename: 
@@ -181,7 +182,7 @@ class PyLogger(LoggerBase):
         self.logger = logging.getLogger(self.node_id)
         self.per_service_loggers = {}
         for service in enabled_services:
-          self.per_service_loggers[service] = logging.getLogger(service)
+            self.per_service_loggers[service] = logging.getLogger(service)
 
     def error(self, data):
         data["local_time"] = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S.%f")
