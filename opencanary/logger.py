@@ -3,6 +3,7 @@ import simplejson as json
 import logging.config
 import socket
 import hpfeeds
+import os
 import sys
 
 from datetime import datetime
@@ -129,6 +130,9 @@ class PyLogger(LoggerBase):
 
     __metaclass__ = Singleton
 
+    DEFAULT_SERVICE_LOG_DIR_VAR = 'DEFAULT_SERVICE_LOG_DIR'
+    DEFAULT_SERVICE_LOG_DIR = '/var/tmp/opencanary'
+
     def __init__(self, config, handlers, formatters={}, per_service_logs={}):
         self.node_id = config.getVal("device.node_id")
 
@@ -144,12 +148,24 @@ class PyLogger(LoggerBase):
             # initialise all defined logger handlers
             "loggers": {self.node_id: {"handlers": set(handlers.keys())}},
         }
-        for psl in per_service_logs:
-            logconfig["handlers"][psl] = {
+
+        default_service_log_dir = (
+            os.environ.get(self.DEFAULT_SERVICE_LOG_DIR_VAR) or self.DEFAULT_SERVICE_LOG_DIR)
+        os.makedirs(default_service_log_dir, exist_ok=True)
+        enabled_services = [k.removesuffix(".enabled") 
+                            for k in config.toDict()
+                            if k.endswith(".enabled") and config.getVal(k)]    
+        for service in enabled_services:
+            log_filename = per_service_logs.get(service)
+            if not log_filename: 
+                port = config.getVal(service + ".port")
+                port_string = f"_port_{port}" if port else ""
+                log_filename = os.path.join(default_service_log_dir, f"{service}{port_string}.log")
+            logconfig["handlers"][service] = {
                 "class": "logging.FileHandler",
-                "filename": per_service_logs[psl]
+                "filename": log_filename
             }
-            logconfig["loggers"][psl] = {"handlers": [psl]}
+            logconfig["loggers"][service] = {"handlers": [service]}     
         try:
             logging.config.dictConfig(logconfig)
         except Exception as e:
@@ -164,8 +180,8 @@ class PyLogger(LoggerBase):
 
         self.logger = logging.getLogger(self.node_id)
         self.per_service_loggers = {}
-        for psl in per_service_logs:
-          self.per_service_loggers[psl] = logging.getLogger(psl)
+        for service in enabled_services:
+          self.per_service_loggers[service] = logging.getLogger(service)
 
     def error(self, data):
         data["local_time"] = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S.%f")
