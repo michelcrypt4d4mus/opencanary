@@ -48,6 +48,7 @@ class OpenCanaryConfigService(Resource):
 
     def render_POST(self, request) -> bytes:
         self._log_msg("Processing POST...")
+        # TODO: POST should presumably write a new file before reloading
         return self._reload_config()
 
     def _log_msg(self, msg: str) -> None:
