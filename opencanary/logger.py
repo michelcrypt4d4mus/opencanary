@@ -130,8 +130,8 @@ class PyLogger(LoggerBase):
 
     __metaclass__ = Singleton
 
-    DEFAULT_SERVICE_LOG_DIR_VAR = 'DEFAULT_SERVICE_LOG_DIR'
-    DEFAULT_SERVICE_LOG_DIR = '/var/log/opencanary'
+    # TODO: Move this somewhere central
+    ENV_VAR = "OPENCANARY_ENV"
 
     def __init__(self, config, handlers, formatters={}, per_service_logs={}):
         self.node_id = config.getVal("device.node_id")
@@ -149,7 +149,11 @@ class PyLogger(LoggerBase):
             "loggers": {self.node_id: {"handlers": set(handlers.keys())}},
         }
 
-        default_service_log_dir = os.getenv(self.DEFAULT_SERVICE_LOG_DIR_VAR, self.DEFAULT_SERVICE_LOG_DIR)
+        env = os.getenv(self.ENV_VAR, "dev")
+        if env == "dev":
+            default_service_log_dir = "/var/tmp/opencanary"
+        else:
+            default_service_log_dir = "/var/log/opencanary"
         os.makedirs(default_service_log_dir, exist_ok=True)
         enabled_services = [
             k.removesuffix(".enabled") 
