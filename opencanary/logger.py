@@ -150,8 +150,8 @@ class PyLogger(LoggerBase):
             "loggers": {self.node_id: {"handlers": set(handlers.keys())}},
         }
 
-        env = os.getenv(self.ENV_VAR, self.DEV)
-        if env == self.DEV:
+        env = os.getenv(self.ENV_VAR, self.ENV_DEV)
+        if env == self.ENV_DEV:
             default_service_log_dir = "/var/tmp/opencanary"
         else:
             default_service_log_dir = "/var/log/opencanary"
