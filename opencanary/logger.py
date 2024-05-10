@@ -14,6 +14,11 @@ import requests
 from opencanary.iphelper import check_ip
 
 
+# TODO: Move this somewhere central
+ENV_VAR = "OPENCANARY_ENV"
+ENV_DEV = "dev"
+
+
 class Singleton(type):
     _instances = {}
 
@@ -130,10 +135,6 @@ class PyLogger(LoggerBase):
 
     __metaclass__ = Singleton
 
-    # TODO: Move this somewhere central
-    ENV_VAR = "OPENCANARY_ENV"
-    ENV_DEV = "dev"
-
     def __init__(self, config, handlers, formatters={}, per_service_logs={}):
         self.node_id = config.getVal("device.node_id")
 
@@ -150,8 +151,8 @@ class PyLogger(LoggerBase):
             "loggers": {self.node_id: {"handlers": set(handlers.keys())}},
         }
 
-        env = os.getenv(self.ENV_VAR, self.ENV_DEV)
-        if env == self.ENV_DEV:
+        env = os.getenv(ENV_VAR, ENV_DEV)
+        if env == ENV_DEV:
             default_service_log_dir = "/var/tmp/opencanary"
         else:
             default_service_log_dir = "/var/log/opencanary"
