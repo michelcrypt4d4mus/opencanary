@@ -168,6 +168,24 @@ This creates the path and file `/etc/opencanaryd/opencanary.conf`. You must now 
 
 Configuration is performed via the JSON config file. Edit the file, and when happy save and exit.
 
+### Logging Per Service
+Logs can be configured to send to a separate file for each service in `opencanary.conf` like so:
+
+```json
+"logger": {
+    "class": "PyLogger",
+    "kwargs": {
+        "file": {
+            "class": "logging.FileHandler",
+            "filename": "/var/tmp/opencanary.log"
+        }
+    },
+    "per_service_logs": {
+        "ftp": "/var/tmp/ftp.log"
+    }
+}
+```
+
 ### Optional modules
 
 #### SNMP
