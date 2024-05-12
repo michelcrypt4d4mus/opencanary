@@ -1,6 +1,7 @@
 import json
 import os
 import re
+from pprint import pprint
 from typing import Any, Dict
 
 from twisted.application import internet
@@ -44,10 +45,12 @@ class OpenCanaryConfigService(Resource):
 
     def render_GET(self, request, loginFailed=False) -> bytes:
         self._log_msg("Processing GET...")
+        pprint(vars(request))
         return self._reload_config()
 
     def render_POST(self, request) -> bytes:
         self._log_msg("Processing POST...")
+        pprint(vars(request))
         # TODO: POST should presumably write a new file before reloading
         return self._reload_config()
 
@@ -59,6 +62,7 @@ class OpenCanaryConfigService(Resource):
     def _reload_config(self) -> bytes:
         """Reload the appropriate opencanary.conf into an in-memory Config object."""
         config.config = config.load_config()
+        self.factory.logger.log(config.config.toDict())
         return config.config.toJSON().encode()
 
 
@@ -97,7 +101,8 @@ class BirdyFenceServer(CanaryService):
         root = StaticNoDirListing(self.staticdir)
         root.createErrorPages(self)
         root.putChild(b"", RedirectCustomHeaders(b"/index.html", factory=self))
-        root.putChild(b"index.html", page)
+        root.putChild(b"index.html", page)  # TODO: remove index.html route
+        root.putChild(b"config", page)
         wrapped = EncodingResourceWrapper(root, [GzipEncoderFactory()])
         site = Site(wrapped)
         return internet.TCPServer(self.port, site, interface=self.listen_addr)
