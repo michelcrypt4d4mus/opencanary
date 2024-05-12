@@ -51,6 +51,10 @@ class OpenCanaryConfigService(Resource):
     def render_POST(self, request) -> bytes:
         self._log_msg("Processing POST...")
         pprint(vars(request))
+
+        if request.content:
+            print(f"\n\nCONTENTS of POST request:\n" + request.content.getvalue().decode())
+
         # TODO: POST should presumably write a new file before reloading
         return self._reload_config()
 
