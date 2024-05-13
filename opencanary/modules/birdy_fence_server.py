@@ -1,6 +1,7 @@
 import json
 import os
 import re
+from pathlib import Path
 from pprint import pprint
 from typing import Any, Dict
 
@@ -54,10 +55,14 @@ class OpenCanaryConfigService(Resource):
             self._log_msg("Returning config...")
             return self._reload_config()
         elif route.startswith(SERVICE_LOGS_ROUTE):
-            self._log_msg(f"Returning logs at route {route}...")
             (_route, service) = route.split('/')
             serviceLogPath = config.config.getLogPath(service)
-            self._log_msg(f"Log path: '{serviceLogPath}'")
+
+            if not Path(serviceLogPath).exists():
+                self._log_msg(f"No logs found at log path: '{serviceLogPath}', returning empty array")
+                return json.dumps([]).encode()
+
+            self._log_msg(f"Loading data from log path: '{serviceLogPath}'")
 
             with open(serviceLogPath, 'r') as f:
                 log_contents = f.readlines()
