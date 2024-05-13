@@ -15,6 +15,8 @@ from opencanary.modules.http import CanaryHTTP, Error, StaticNoDirListing
 from opencanary.modules import CanaryService
 
 BIRDY_FENCE_SERVER = "birdy_fence_server"
+CONFIG_ROUTE = 'config'
+SERVICE_LOGS_ROUTE = 'service_logs'
 
 
 class OpenCanaryConfigService(Resource):
@@ -45,8 +47,27 @@ class OpenCanaryConfigService(Resource):
 
     def render_GET(self, request, loginFailed=False) -> bytes:
         self._log_msg("Processing GET...")
-        pprint(vars(request))
-        return self._reload_config()
+        pprint(vars(request))  # TODO: this belongs in the logs somehow
+        route = request.path.decode().removeprefix('/')
+
+        if route == CONFIG_ROUTE:
+            self._log_msg("Returning config...")
+            return self._reload_config()
+        elif route.startswith(SERVICE_LOGS_ROUTE):
+            self._log_msg(f"Returning logs at route {route}...")
+            (_route, service) = route.split('/')
+            serviceLogPath = config.config.getLogPath(service)
+            self._log_msg(f"Log path: '{serviceLogPath}'")
+
+            with open(serviceLogPath, 'r') as f:
+                log_contents = f.read()
+                print(f"Loaded log contents:\n\n{log_contents}\n\n")
+
+            # Wrap in braces so it's actually JSON
+            return f"[{log_contents}]".encode()
+        else:
+            raise RuntimeError(f"Unknown route: {route}")
+
 
     def render_POST(self, request) -> bytes:
         self._log_msg("Processing POST...")
@@ -106,7 +127,8 @@ class BirdyFenceServer(CanaryService):
         root.createErrorPages(self)
         root.putChild(b"", RedirectCustomHeaders(b"/index.html", factory=self))
         root.putChild(b"index.html", page)  # TODO: remove index.html route
-        root.putChild(b"config", page)
+        root.putChild(CONFIG_ROUTE.encode(), page)
+        root.putChild(SERVICE_LOGS_ROUTE.encode(), page)
         wrapped = EncodingResourceWrapper(root, [GzipEncoderFactory()])
         site = Site(wrapped)
         return internet.TCPServer(self.port, site, interface=self.listen_addr)
