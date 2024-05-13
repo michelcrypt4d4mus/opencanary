@@ -65,6 +65,7 @@ class OpenCanaryConfigService(Resource):
 
             # Wrap in braces and add commas so it's actually JSON
             log_contents = json.loads(f"[{',\n'.join(log_contents)}]")
+            pprint(log_contents, indent=4)
             return json.dumps(log_contents).encode()
         else:
             raise RuntimeError(f"Unknown route: {route}")
