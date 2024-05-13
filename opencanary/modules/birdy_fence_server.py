@@ -60,11 +60,12 @@ class OpenCanaryConfigService(Resource):
             self._log_msg(f"Log path: '{serviceLogPath}'")
 
             with open(serviceLogPath, 'r') as f:
-                log_contents = f.read()
+                log_contents = f.readlines()
                 print(f"Loaded log contents:\n\n{log_contents}\n\n")
 
-            # Wrap in braces so it's actually JSON
-            return f"[{log_contents}]".encode()
+            # Wrap in braces and add commas so it's actually JSON
+            log_contents = json.loads(f"[{',\n'.join(log_contents)}]")
+            return json.dumps(log_contents).encode()
         else:
             raise RuntimeError(f"Unknown route: {route}")
 
