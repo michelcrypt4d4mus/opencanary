@@ -154,7 +154,7 @@ class PyLogger(LoggerBase):
         for service in enabled_services:
             logconfig["handlers"][service] = {
                 "class": "logging.FileHandler",
-                "filename": per_service_logs.get(service) or config.getLogPath(service)
+                "filename": per_service_logs.get(service, config.getLogPath(service)
             }
             logconfig["loggers"][service] = {"handlers": [service]}
         try:
