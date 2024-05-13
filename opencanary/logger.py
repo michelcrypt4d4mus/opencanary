@@ -14,11 +14,6 @@ import requests
 from opencanary.iphelper import check_ip
 
 
-# TODO: Move this somewhere central
-ENV_VAR = "OPENCANARY_ENV"
-ENV_DEV = "dev"
-
-
 class Singleton(type):
     _instances = {}
 
@@ -151,28 +146,17 @@ class PyLogger(LoggerBase):
             "loggers": {self.node_id: {"handlers": set(handlers.keys())}},
         }
 
-        env = os.getenv(ENV_VAR, ENV_DEV)
-        if env == ENV_DEV:
-            default_service_log_dir = "/var/tmp/opencanary"
-        else:
-            default_service_log_dir = "/var/log/opencanary"
-        os.makedirs(default_service_log_dir, exist_ok=True)
         enabled_services = [
-            k.removesuffix(".enabled") 
+            k.removesuffix(".enabled")
             for k in config.toDict()
             if k.endswith(".enabled") and config.getVal(k)
-        ] 
+        ]
         for service in enabled_services:
-            log_filename = per_service_logs.get(service)
-            if not log_filename: 
-                port = config.getVal(service + ".port")
-                port_string = f"_port_{port}" if port else ""
-                log_filename = os.path.join(default_service_log_dir, f"{service}{port_string}.log")
             logconfig["handlers"][service] = {
                 "class": "logging.FileHandler",
-                "filename": log_filename
+                "filename": per_service_logs.get(service, config.getLogPath(service))
             }
-            logconfig["loggers"][service] = {"handlers": [service]}     
+            logconfig["loggers"][service] = {"handlers": [service]}
         try:
             logging.config.dictConfig(logconfig)
         except Exception as e:
