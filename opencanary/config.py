@@ -6,12 +6,24 @@ import string
 import subprocess
 import shutil
 import re
+from os import getenv
 from os.path import expanduser
 from pkg_resources import resource_filename
 from pathlib import Path
 
 SAMPLE_SETTINGS = resource_filename(__name__, "data/settings.json")
 SETTINGS = "opencanary.conf"
+OPENCANARY_ENVIRONMENT_ENV_VAR = "OPENCANARY_ENV"
+OPENCANARY_ENVIRONMENT_DEV = "dev"
+
+
+env = os.getenv(OPENCANARY_ENVIRONMENT_ENV_VAR, OPENCANARY_ENVIRONMENT_DEV)
+
+if env == OPENCANARY_ENVIRONMENT_DEV:
+    DEFAULT_SERVICE_LOG_DIR = "/var/tmp/opencanary"
+else:
+    DEFAULT_SERVICE_LOG_DIR = "/var/log/opencanary"
+
 
 
 def expand_vars(var):
@@ -185,6 +197,12 @@ class Config:
                 raise ConfigException(key, f"{val} is not valid.")
 
         return True
+
+    def getLogPath(self, service: str) -> str:
+        os.makedirs(DEFAULT_SERVICE_LOG_DIR, exist_ok=True)
+        port = config.getVal(service + ".port")
+        port_string = f"_port_{port}" if port else ""
+        return os.path.join(DEFAULT_SERVICE_LOG_DIR, f"{service}{port_string}.log")
 
     def __repr__(self):
         return self.__config.__repr__()
