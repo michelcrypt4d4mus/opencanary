@@ -117,7 +117,7 @@ else
 fi
 
 
-echo_log "Activating virtual env in subshell..."
+echo_log "Activating virtual env in build's subshell..."
 . "$VENV_PATH/bin/activate"
 
 echo_log "Installing setuptools..."
@@ -133,10 +133,8 @@ echo_log "Installing built package '$BUILT_PKG'..."
 pip install "$BUILT_PKG" >> "$BUILD_LOG" 2>&1
 
 echo_log "Install complete.\n"
-
-if [[ "${VIRTUAL_ENV+set}" = set ]]; then
-    echo_log "IMPORTANT: virtualenv is NOT active!"
-fi
+echo_log "IMPORTANT: virtualenv must be manually activated to run twistd server."
+echo_log "If you get an error about a missing twistd activate the venv and re-run.\n"
 
 echo_log "To activate the virtualenv now and in the future:"
 echo_log "\n    . '$OPENCANARY_DIR/env/bin/activate'\n\n"
