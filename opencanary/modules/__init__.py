@@ -7,7 +7,7 @@ from twisted.internet.protocol import Factory
 from twisted.internet.protocol import DatagramProtocol
 
 from opencanary.honeycred import buildHoneyCredHook
-
+from mac_notifications import client
 # Monkey-patch-replace Twisted Protocol with CanaryProtocol class
 from twisted.internet import protocol
 
@@ -89,6 +89,15 @@ class CanaryService(object):
             if username or password:
                 data["honeycred"] = self.honeyCredHook(username, password)
 
+        notification_kwargs = {
+            "title": "title",
+            "subtitle": "subtitle",
+            "text": "msg",
+            "reply_button_str": "Reply to this notification",
+            "reply_callback": lambda reply: print(f"You replied: {reply}"),
+        }
+
+        client.create_notification(**notification_kwargs)
         self.logger.log(data)
 
     def getService(self):

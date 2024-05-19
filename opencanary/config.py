@@ -6,6 +6,7 @@ import string
 import subprocess
 import shutil
 import re
+from os import getcwd
 from os.path import expanduser
 from pkg_resources import resource_filename
 from pathlib import Path
@@ -54,6 +55,7 @@ class Config:
         self.__configfile = configfile
 
         files = [
+            os.path.join(getcwd(), 'opencanary.conf'),
             configfile,
             "%s/.%s" % (expanduser("~"), configfile),
             "/etc/opencanaryd/%s" % configfile,
